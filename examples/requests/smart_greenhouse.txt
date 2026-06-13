@@ -1,0 +1,4 @@
+I want a smart greenhouse / plant monitor. It should measure temperature and
+humidity, check the light level and soil moisture, show the readings (on an OLED
+if I have one), and warn me with an LED or buzzer when the soil gets too dry so
+I know it is time to water the plant.

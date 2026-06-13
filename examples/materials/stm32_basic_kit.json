@@ -1,0 +1,18 @@
+{
+  "student_level": "advanced",
+  "available_boards": [
+    {"type": "stm32_nucleo_basic", "quantity": 1}
+  ],
+  "parts": [
+    {"type": "led", "quantity": 3},
+    {"type": "resistor_220", "quantity": 6},
+    {"type": "button", "quantity": 1},
+    {"type": "buzzer", "quantity": 1},
+    {"type": "breadboard", "quantity": 1},
+    {"type": "jumper_wires", "quantity": 20}
+  ],
+  "constraints": {
+    "max_difficulty": "advanced",
+    "prefer_simulation": false
+  }
+}

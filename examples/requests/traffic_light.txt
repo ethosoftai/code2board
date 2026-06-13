@@ -1,0 +1,4 @@
+I want to make a model traffic light for a road crossing using red, yellow and
+green LEDs. It should cycle through the lights like a real traffic signal. If I
+have a button, add a pedestrian crossing request that shortens the green light,
+and a buzzer that beeps during the red/walk phase.

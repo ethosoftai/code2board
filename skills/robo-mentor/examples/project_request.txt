@@ -1,0 +1,4 @@
+Build me a beginner line-following robot. It should use two IR sensors to stay
+on a black line, drive its two motors through the motor driver, and turn to
+correct itself when it drifts off the line. Please print debug messages to the
+Serial Monitor and keep the code easy to understand and tune.

@@ -1,0 +1,5 @@
+I want to build a small robot that can follow a black line on a white floor.
+It should use the two IR sensors to stay on the line, drive its two motors,
+and turn left or right automatically when it starts drifting off the line.
+Please keep it beginner-friendly and print debug messages so I can see what it
+is thinking.

@@ -1,0 +1,16 @@
+# RoboMentor runs in a fully-functional BASIC MODE with none of these installed.
+# Install them to unlock higher-quality renders, YAML input, and optional LLM providers.
+#
+# Recommended for the best demo experience:
+matplotlib>=3.5
+networkx>=2.6
+
+# Optional extras (uncomment as needed):
+# graphviz>=0.20      # nicer wiring graphs (also needs the system 'dot' binary)
+# PyYAML>=6.0         # YAML material lists
+# typer>=0.9          # prettier CLI (argparse fallback is built in)
+# jinja2>=3.0         # templated HTML report (string fallback is built in)
+# requests>=2.28      # OpenAI/Anthropic/Groq/Ollama providers
+
+# Testing:
+pytest>=7.0

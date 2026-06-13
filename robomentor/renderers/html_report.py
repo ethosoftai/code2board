@@ -1,0 +1,170 @@
+"""Render a clean, self-contained HTML report (local CSS, no external CDN).
+
+If Jinja2 is installed it is used for templating; otherwise a built-in string
+builder produces the same document. Either way the result embeds the SVG/PNG
+renders via relative paths so it looks good in a workshop demo.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Dict, List
+
+from ..utils import HAS_JINJA2
+
+_CSS = """
+:root{--bg:#0f1419;--card:#1a212b;--ink:#e8eef3;--muted:#9fb0bf;--accent:#3aa0ff;
+--ok:#2ecc71;--warn:#f1c40f;--err:#e74c3c;--line:#2a3543;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+header{border-bottom:2px solid var(--line);padding-bottom:18px;margin-bottom:24px}
+h1{font-size:30px;margin:0 0 6px} h2{font-size:21px;margin:34px 0 12px;color:var(--accent)}
+.sub{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+.badges{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}
+.badge{padding:5px 12px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid var(--line)}
+.badge.ok{background:rgba(46,204,113,.15);color:var(--ok)}
+.badge.warn{background:rgba(241,196,15,.15);color:var(--warn)}
+.badge.err{background:rgba(231,76,60,.15);color:var(--err)}
+.badge.info{background:rgba(58,160,255,.12);color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+code,pre{background:#0b0f14;border:1px solid var(--line);border-radius:8px}
+code{padding:2px 6px;font-size:13px}
+pre{padding:14px;overflow:auto;font-size:12.5px}
+img,svg{max-width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;margin:8px 0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+ul{margin:6px 0 6px 18px}
+.foot{color:var(--muted);font-size:13px;margin-top:40px;border-top:1px solid var(--line);padding-top:16px}
+.sev-error{color:var(--err)} .sev-warning{color:var(--warn)} .sev-info{color:var(--accent)}
+"""
+
+
+def _row(cells: List[str], tag: str = "td") -> str:
+    return "<tr>" + "".join(f"<{tag}>{c}</{tag}>" for c in cells) + "</tr>"
+
+
+def _img_block(artifacts: Dict[str, str]) -> str:
+    blocks = []
+    order = [("circuit_diagram_png", "Circuit diagram"),
+             ("circuit_diagram_svg", "Circuit diagram (SVG)"),
+             ("wiring_graph_png", "Wiring graph"),
+             ("breadboard_style_png", "Breadboard-style layout"),
+             ("breadboard_style_svg", "Breadboard-style layout (SVG)")]
+    used = set()
+    for key, label in order:
+        if key in artifacts and key not in used:
+            used.add(key)
+            blocks.append(f'<figure><img src="{artifacts[key]}" alt="{label}"/>'
+                          f'<figcaption class="sub">{label}</figcaption></figure>')
+    return '<div class="grid">' + "".join(blocks) + "</div>" if blocks else "<p class='sub'>No renders.</p>"
+
+
+def build_html(ctx: Dict[str, Any]) -> str:
+    if HAS_JINJA2:
+        try:
+            return _build_jinja(ctx)
+        except Exception:
+            pass
+    return _build_string(ctx)
+
+
+def _build_string(ctx: Dict[str, Any]) -> str:
+    plan = ctx["plan"]
+    val = ctx["validation"]
+    sim = ctx["sim"]
+
+    val_badge = ('<span class="badge ok">Validation passed</span>' if val["passed"]
+                 else '<span class="badge err">Validation failed</span>')
+    sim_badge = ('<span class="badge ok">Sim success</span>' if sim.get("success")
+                 else '<span class="badge warn">Sim fallback/skipped</span>')
+
+    bom_rows = "".join(_row([b["component"], b["part_type"], b.get("category", ""), b.get("note", "")])
+                       for b in ctx["bom"])
+    wiring_rows = "".join(_row([r["from_component"], r["from_pin"], r["to_component"],
+                               r["to_pin"], r["net"], r["note"]]) for r in ctx["wiring_rows"])
+    issue_rows = "".join(
+        _row([f'<span class="sev-{i["severity"]}">{i["severity"].upper()}</span>', i["code"], i["message"]])
+        for i in val["issues"])
+
+    objectives = "".join(f"<li>{o}</li>" for o in ctx.get("learning_objectives", []))
+    troubleshooting = "".join(f"<li>{t}</li>" for t in ctx.get("troubleshooting", []))
+    warnings = "".join(f"<li>⚠️ {w}</li>" for w in ctx.get("warnings", []))
+
+    explanation_html = ctx.get("explanation_html", "")
+
+    return f"""<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{ctx['title']}</title>
+<style>{_CSS}</style></head>
+<body><div class="wrap">
+<header>
+  <h1>{ctx['title']}</h1>
+  <div class="sub">Generated by RoboMentor — material-aware robotics education toolchain</div>
+  <div class="badges">
+    <span class="badge info">{ctx['board_name']}</span>
+    <span class="badge info">Confidence {plan['confidence']:.2f}</span>
+    {val_badge}{sim_badge}
+    <span class="badge info">{val['num_warnings']} warnings</span>
+  </div>
+</header>
+
+<div class="card">
+  <h2 style="margin-top:0">Overview</h2>
+  <p><b>Project:</b> {ctx['project_name']}<br>
+     <b>Template:</b> <code>{plan['template_id']}</code><br>
+     <b>Reasoning:</b> {plan['reasoning_summary']}</p>
+</div>
+
+<h2>Circuit renders</h2>
+<div class="card">{_img_block(ctx.get('artifacts', {}))}</div>
+
+<h2>Bill of materials</h2>
+<div class="card"><table><thead>{_row(['Component','Part type','Category','Note'],'th')}</thead>
+<tbody>{bom_rows}</tbody></table></div>
+
+<h2>Wiring table</h2>
+<div class="card"><table><thead>{_row(['From','Pin','To','Pin','Net','Note'],'th')}</thead>
+<tbody>{wiring_rows}</tbody></table></div>
+
+<h2>Educational explanation</h2>
+<div class="card">{explanation_html}</div>
+
+<h2>Validation</h2>
+<div class="card">
+  <p><b>Errors:</b> {val['num_errors']} &nbsp; <b>Warnings:</b> {val['num_warnings']} &nbsp; <b>Info:</b> {val['num_infos']}</p>
+  <table><thead>{_row(['Severity','Code','Message'],'th')}</thead><tbody>{issue_rows}</tbody></table>
+</div>
+
+<h2>Simulation</h2>
+<div class="card"><pre>{_dict_to_pre(sim)}</pre></div>
+
+<div class="grid">
+  <div class="card"><h2 style="margin-top:0">Learning objectives</h2><ul>{objectives}</ul></div>
+  <div class="card"><h2 style="margin-top:0">Troubleshooting</h2><ul>{troubleshooting}</ul></div>
+</div>
+
+{'<div class="card"><h2 style="margin-top:0">Warnings</h2><ul>' + warnings + '</ul></div>' if warnings else ''}
+
+<div class="foot">
+  Simulation is a learning aid, not a guarantee of real-world behaviour.
+  Build with the power off and double-check your wiring before powering up.
+</div>
+</div></body></html>"""
+
+
+def _dict_to_pre(d: Dict[str, Any]) -> str:
+    import json
+    return json.dumps(d, indent=2)
+
+
+def _build_jinja(ctx: Dict[str, Any]) -> str:
+    # Reuse the string builder's markup through Jinja for environments that
+    # prefer it; behaviourally identical, kept simple on purpose.
+    from jinja2 import Template  # type: ignore
+
+    return Template("{{ html|safe }}").render(html=_build_string(ctx))

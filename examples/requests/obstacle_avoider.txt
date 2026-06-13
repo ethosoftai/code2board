@@ -1,0 +1,4 @@
+Build a robot that drives forward and avoids obstacles. It should use the
+ultrasonic distance sensor to measure how far away things are, stop before it
+hits a wall, back up a little, and turn to find a clear path. A scanning servo
+would be a nice bonus if I have one.

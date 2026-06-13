@@ -1,0 +1,21 @@
+{
+  "student_level": "beginner",
+  "available_boards": [
+    {"type": "arduino_uno", "quantity": 1}
+  ],
+  "parts": [
+    {"type": "ir_line_sensor", "quantity": 2},
+    {"type": "dc_motor", "quantity": 2},
+    {"type": "l298n_motor_driver", "quantity": 1},
+    {"type": "led", "quantity": 3},
+    {"type": "resistor_220", "quantity": 6},
+    {"type": "battery_pack", "quantity": 1},
+    {"type": "breadboard", "quantity": 1},
+    {"type": "jumper_wires", "quantity": 30}
+  ],
+  "constraints": {
+    "avoid_soldering": true,
+    "prefer_simulation": true,
+    "prefer_low_cost": true
+  }
+}

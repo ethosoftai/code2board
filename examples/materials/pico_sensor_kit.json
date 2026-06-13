@@ -1,0 +1,21 @@
+{
+  "student_level": "intermediate",
+  "available_boards": [
+    {"type": "raspberry_pi_pico", "quantity": 1}
+  ],
+  "parts": [
+    {"type": "ultrasonic_hc_sr04", "quantity": 1},
+    {"type": "dc_motor", "quantity": 2},
+    {"type": "tb6612fng_motor_driver", "quantity": 1},
+    {"type": "servo_sg90", "quantity": 1},
+    {"type": "led", "quantity": 2},
+    {"type": "resistor_220", "quantity": 4},
+    {"type": "battery_pack", "quantity": 1},
+    {"type": "breadboard", "quantity": 1},
+    {"type": "jumper_wires", "quantity": 30}
+  ],
+  "constraints": {
+    "max_difficulty": "intermediate",
+    "prefer_simulation": true
+  }
+}
